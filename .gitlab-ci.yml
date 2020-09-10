@@ -1,0 +1,47 @@
+stages:
+    - build
+    - deploy
+  
+  build:
+    stage: build
+    image: docker:latest
+    only:
+      - "master"
+    services:
+      - docker:dind
+    variables:
+      DOCKER_DRIVER: "overlay"
+  
+    before_script:
+      - docker version
+      - "docker info"
+      - "docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY"
+      - "apk add --no-cache docker-compose"
+    script:
+      - "docker-compose pull"
+      - "docker-compose build"
+      - "docker-compose push"
+
+    after_script:
+      - "docker logout ${CI_REGISTRY}"
+      
+  
+  deploy:
+    stage: deploy
+    image: gitlab/dind:latest
+    only:
+      - "master"
+    environment: 
+      name: test
+    services:
+      - docker:dind
+    before_script:
+      - mkdir -p ~/.ssh
+      - echo "$DEPLOY_SERVER_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+      - chmod 600 ~/.ssh/id_rsa
+      - eval "$(ssh-agent -s)"
+      - ssh-add ~/.ssh/id_rsa
+      - ssh-keyscan -H $DEPLOY_SERVER_IP >> ~/.ssh/known_hosts
+    script:
+      - scp -r docker-compose.yml gitlab-ci@${DEPLOY_SERVER_IP}:~/
+      - ssh gitlab-ci@$DEPLOY_SERVER_IP "mkdir -p ${CI_PROJECT_PATH}; mv docker-compose.yml ${CI_PROJECT_PATH}; cd ${CI_PROJECT_PATH}; echo "CI_COMMIT_SHA="${CI_COMMIT_SHORT_SHA} > .env; docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}; docker-compose up -d"
