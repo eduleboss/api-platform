@@ -25,6 +25,10 @@ services:
         - /var/run/docker.sock:/var/run/docker.sock
 
   php:
+    build:
+      context: ./api
+      target: api_platform_php
+      <<: *cache
     image: ${PHP_IMAGE:-registry.gitlab.com/poc-api-platform/php}
     healthcheck:
       interval: 10s
@@ -38,6 +42,10 @@ services:
       - ./api/docker/php/conf.d/api-platform.dev.ini:/usr/local/etc/php/conf.d/api-platform.ini
 
   api:
+    build:
+      context: ./api
+      target: api_platform_nginx
+      <<: *cache
     image: ${NGINX_IMAGE:-registry.gitlab.com/poc-api-platform/api}
     depends_on:
       - php
@@ -83,6 +91,11 @@ services:
       - traefik.http.routers.mercure.rule=Host(`poc-mercure.hangbe.com`)
 
   client:
+    build:
+      context: ./client
+      target: api_platform_client_development
+      cache_from:
+        - ${CLIENT_IMAGE:-registry.gitlab.com/poc-api-platform/client}
     image: ${CLIENT_IMAGE:-registry.gitlab.com/poc-api-platform/client}
     tty: true
     environment:
@@ -95,6 +108,11 @@ services:
       - traefik.http.services.client.loadbalancer.server.port=3000
 
   admin:
+    build:
+      context: ./admin
+      target: api_platform_admin_development
+      cache_from:
+        - ${ADMIN_IMAGE:-registry.gitlab.com/poc-api-platform/admin}
     image: ${ADMIN_IMAGE:-registry.gitlab.com/poc-api-platform/admin}
     tty: true
     volumes:
