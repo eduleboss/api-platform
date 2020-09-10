@@ -59,7 +59,7 @@ services:
     depends_on:
       - api
     labels:
-      - traefik.http.routers.vulcain.rule=Host(`poc-vulcain.douardo.com`)
+      - traefik.http.routers.vulcain.rule=Host(`poc-vulcain.hangbe.com`)
 
   db:
     image: postgres:12-alpine
@@ -70,7 +70,7 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data:rw
     labels:
-      - traefik.http.routers.db.rule=Host(`poc-db.douardo.com`)
+      - traefik.http.routers.db.rule=Host(`poc-db.hangbe.com`)
 
   mercure:
     image: dunglas/mercure
@@ -88,7 +88,7 @@ services:
     volumes:
       - ./certs:/certs:ro
     labels:
-      - traefik.http.routers.mercure.rule=Host(`poc-mercure.douardo.com`)
+      - traefik.http.routers.mercure.rule=Host(`poc-mercure.hangbe.com`)
 
   client:
     build:
@@ -104,7 +104,7 @@ services:
     volumes:
       - ./client:/usr/src/client:rw,cached
     labels:
-      - traefik.http.routers.client.rule=Host(`poc-client.douardo.com`)
+      - traefik.http.routers.client.rule=Host(`poc-client.hangbe.com`)
       - traefik.http.services.client.loadbalancer.server.port=3000
 
   admin:
@@ -118,7 +118,7 @@ services:
     volumes:
       - ./admin:/usr/src/admin:rw,cached
     labels:
-      - traefik.http.routers.admin.rule=Host(`poc-admin.douardo.com`)
+      - traefik.http.routers.admin.rule=Host(`poc-admin.hangbe.com`)
       - traefik.http.services.admin.loadbalancer.server.port=3000
 
 volumes:
